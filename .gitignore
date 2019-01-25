@@ -141,6 +141,7 @@ pip-selfcheck.json
 
 # Data
 data/
+data
 
 # Models
 train/
