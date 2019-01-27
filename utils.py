@@ -158,7 +158,7 @@ def resize_img_with_net(model, img, crop_size):
     single_img = img.reshape(1, crop_size, crop_size, 3)
     batched = np.repeat(single_img, 16, axis=0)
     fd = {model.X: batched}
-    out_img = model.sess.run([model.target_network.logits], feed_dict=fd)[0]
+    out_img = model.sess.run([model.aec_network.decoded], feed_dict=fd)[0]
     return np.reshape(out_img[0], (crop_size, crop_size, 3))
 
 def compute_weight_mask(img, all_crops):

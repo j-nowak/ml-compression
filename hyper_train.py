@@ -104,12 +104,6 @@ for a,b in hyper_parameters.items():
 # Load data
 data_generator = Dataset(hparams)
 
-def compress_fn(hparams, pixels, weights, biases):
-    return CompressNetwork().for_hyper(hparams, pixels, weights, const_layers, trainables_mask)
-
-def target_fn(hparams, pixels, weights, biases):
-    return TargetNetwork(hparams, pixels, weights, biases)
-
 # Prepare train dirs
 model_name = args.model_name + '_' + datetime.datetime.now().strftime("%Y_%m_%d__%H_%M_%S")
 print('Running model: ' + model_name)
@@ -126,7 +120,7 @@ tensorboard_train_dir = args.train_dir + '/' + args.tensorboard + '/' + model_na
 tensorboard_test_dir = args.train_dir + '/' + args.tensorboard + '/' + model_name + '/test'
 
 # Build net
-network = HyperPictureFramework(hparams, data_generator, model_name, saved_models_dir, target_fn)
+network = HyperPictureFramework(hparams, data_generator, model_name, saved_models_dir)
 if hparams.checkpoint != '': 
     print('To restore graph you need to put metagraph path and directorty that contains checkpoint')
     if hparams.metagraph == '':
