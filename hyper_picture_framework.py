@@ -35,7 +35,8 @@ class HyperPictureFramework:
         self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
         self.distortion_loss = tf.losses.mean_squared_error(self.Y, self.aec_network.decoded)
-        self.loss_op = self.distortion_loss
+        self.distortion_loss_quantized = tf.losses.mean_squared_error(self.Y, self.aec_network.quant_decoded)
+        self.loss_op = self.distortion_loss + self.distortion_loss_quantized
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) # this trains batch normalziation
         with tf.control_dependencies(update_ops):
@@ -47,6 +48,7 @@ class HyperPictureFramework:
         tf.summary.scalar('total_loss', self.loss_op)
         # tf.summary.scalar('vgg_loss', self.vgg_loss)
         tf.summary.scalar('distortion_loss', self.distortion_loss)
+        tf.summary.scalar('distortion_loss_quantized', self.distortion_loss_quantized)
 
         tf.summary.scalar('PSNR_train', self.PSNR_train)
         tf.summary.scalar('SSIM_train', self.SSIM_train)

@@ -74,7 +74,7 @@ class HyperNetwork:
         self.latent_loss = 0.0
 
         with tf.name_scope('aec'):
-            self.build_net(x)
+            self.build_net_comparison(x)
 
     def quntize(self, encoded):
         if self.hparams.quant_method == 1:
@@ -204,3 +204,27 @@ class HyperNetwork:
         self.encoded = encoded
         self.quantized = quantized
         self.decoded = decoded
+
+    def simple_quant(self, encoded):
+        q = encoded * self.hparams.quant_size
+        q = tf.stop_gradient(tf.round(q))
+        dq = q / self.hparams.quant_size
+        return dq
+
+    def build_net_comparison(self, x):
+        with tf.variable_scope("ENCODER", reuse=False) as scope:
+            encoded = self.encode(x)
+        with tf.variable_scope("DECODER", reuse=False) as scope:
+            decoded = self.decode(encoded)
+
+        quantized = self.simple_quant(encoded)
+        with tf.variable_scope("DECODER", reuse=True) as scope:
+            quant_decoded = self.decode(quantized)
+        
+        self.encoded = encoded
+        self.decoded = decoded
+        self.quantized = quantized
+        self.quant_decoded = quant_decoded
+        
+        print('Latent:', encoded.shape)
+        print('Decoded:', decoded.shape)
