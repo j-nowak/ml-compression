@@ -35,8 +35,9 @@ class HyperPictureFramework:
         self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
         self.distortion_loss = tf.losses.mean_squared_error(self.Y, self.aec_network.decoded)
-        self.distortion_loss_quantized = tf.losses.mean_squared_error(self.Y, self.aec_network.quant_decoded)
-        self.loss_op = self.distortion_loss + self.distortion_loss_quantized
+        self.distortion_loss_cont = tf.losses.mean_squared_error(self.Y, self.aec_network.cont_decoded)
+        # self.distortion_loss_quantized = tf.losses.mean_squared_error(self.Y, self.aec_network.quant_decoded)
+        self.loss_op = self.distortion_loss + self.distortion_loss_cont
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) # this trains batch normalziation
         with tf.control_dependencies(update_ops):
@@ -48,7 +49,7 @@ class HyperPictureFramework:
         tf.summary.scalar('total_loss', self.loss_op)
         # tf.summary.scalar('vgg_loss', self.vgg_loss)
         tf.summary.scalar('distortion_loss', self.distortion_loss)
-        tf.summary.scalar('distortion_loss_quantized', self.distortion_loss_quantized)
+        tf.summary.scalar('distortion_loss_cont', self.distortion_loss_cont)
 
         tf.summary.scalar('PSNR_train', self.PSNR_train)
         tf.summary.scalar('SSIM_train', self.SSIM_train)
@@ -105,7 +106,8 @@ class HyperPictureFramework:
         self.test_ssim_rgb = tf.image.ssim(self.truth_img, self.result_img, 1.0)
         
     def build_network(self):
-        self.aec_network = HyperNetwork(self.X, self.hparams)
+        self.alpha = tf.placeholder(tf.float32, shape=())
+        self.aec_network = HyperNetwork(self.X, self.hparams, self.alpha)
 
     def __datasets_inputs(self):
         input_dataset = self.data_generator.train_dataset
@@ -148,7 +150,7 @@ class HyperPictureFramework:
 
         def run_train(step_num):
             tensors = [self.merged, self.loss_op, self.train_op]
-            fd = {self.handle: train_handle}
+            fd = {self.handle: train_handle, self.alpha: step_num}
 
             summary, _, _ = sess.run(tensors, feed_dict=fd)
             train_writer.add_summary(summary, step_num)

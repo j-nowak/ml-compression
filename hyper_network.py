@@ -69,12 +69,13 @@ def residual(x, filters_num):
     return x
 
 class HyperNetwork:
-    def __init__(self, x, hparams):
+    def __init__(self, x, hparams, alpha):
         self.hparams = hparams
         self.latent_loss = 0.0
 
         with tf.name_scope('aec'):
-            self.build_net_comparison(x)
+            self.build_net_contquant(x, alpha)
+            # self.build_net_comparison(x)
 
     def quntize(self, encoded):
         if self.hparams.quant_method == 1:
@@ -104,7 +105,7 @@ class HyperNetwork:
 
         return dq
 
-    def encode(self, x):
+    def encode(self, x, alpha=1.0):
         # 64x64x64
         x = tf.layers.conv2d(inputs=x, filters=64, kernel_size=(5, 5), strides=(1, 1), padding='same')
         x = tf.nn.relu(x)
@@ -138,6 +139,9 @@ class HyperNetwork:
         # 8x8x16
         encoded = x
         encoded = tf.layers.conv2d(inputs=encoded, filters=16, kernel_size=(5, 5), strides=(1, 1), padding='same')
+
+        encoded = encoded * alpha
+
         encoded = tf.nn.sigmoid(encoded)
 
         return encoded
@@ -228,3 +232,27 @@ class HyperNetwork:
         
         print('Latent:', encoded.shape)
         print('Decoded:', decoded.shape)
+
+    def build_net_contquant(self, x, alpha):
+        with tf.variable_scope("ENCODER", reuse=False) as scope:
+            encoded = self.encode(x)
+        with tf.variable_scope("DECODER", reuse=False) as scope:
+            decoded = self.decode(encoded)
+
+        with tf.variable_scope("ENCODER", reuse=True) as scope:
+            cont_encoded = self.encode(x, alpha)
+        with tf.variable_scope("DECODER", reuse=True) as scope:
+            cont_decoded = self.decode(cont_encoded)
+
+        quantized = self.simple_quant(encoded)
+        with tf.variable_scope("DECODER", reuse=True) as scope:
+            quant_decoded = self.decode(quantized)
+        
+        self.encoded = encoded
+        self.decoded = decoded
+        self.cont_decoded = cont_decoded
+        self.quant_decoded = quant_decoded
+
+        print('Latent:', encoded.shape)
+        print('Decoded:', decoded.shape)
+
