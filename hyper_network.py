@@ -75,8 +75,8 @@ class HyperNetwork:
 
         with tf.name_scope('aec'):
             # self.build_net(x)
-            self.build_net_comparison(x)
-            # self.build_net_contquant(x, alpha)
+            # self.build_net_comparison(x)
+            self.build_net_contquant(x, alpha)
 
     def quntize(self, encoded):
         if self.hparams.quant_method == 1:
