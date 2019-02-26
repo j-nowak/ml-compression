@@ -157,7 +157,10 @@ class HyperPictureFramework:
 
         def run_train(step_num):
             tensors = [self.merged, self.loss_op, self.train_op]
-            fd = {self.handle: train_handle, self.alpha: step_num}
+
+            alpha_param = (step_num // 1000) + 1
+
+            fd = {self.handle: train_handle, self.alpha: alpha_param}
 
             summary, _, _ = sess.run(tensors, feed_dict=fd)
             train_writer.add_summary(summary, step_num)

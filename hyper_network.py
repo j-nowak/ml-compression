@@ -237,7 +237,7 @@ class HyperNetwork:
 
     def build_net_contquant(self, x, alpha):
         with tf.variable_scope("ENCODER", reuse=False) as scope:
-            encoded = self.encode(x)
+            encoded = self.encode(x, 1.0)
         with tf.variable_scope("DECODER", reuse=False) as scope:
             decoded = self.decode(encoded)
 
