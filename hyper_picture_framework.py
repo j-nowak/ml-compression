@@ -49,7 +49,7 @@ class HyperPictureFramework:
         self.SSIM_train = tf.reduce_mean(tf.image.ssim(self.Y, self.aec_network.decoded, max_val=1.0))
         
         self.PSNR_train_quant = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.quant_decoded, max_val=1.0))
-        self.PSNR_train_cont = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.quant_decoded, max_val=1.0))
+        self.PSNR_train_cont = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.cont_decoded, max_val=1.0))
 
         tf.summary.scalar('total_loss', self.loss_op)
         # tf.summary.scalar('vgg_loss', self.vgg_loss)
@@ -146,6 +146,11 @@ class HyperPictureFramework:
 
         test_writer.add_summary(test_summary, step_num)
         test_writer.flush()
+
+    def copute_alpha_param(self, step_num, max_val=50, when_mid=100000):
+        def sigmoid(x):
+            return 1 / (1 + math.exp(-x))
+        return max_val * sigmoid(step_num + when_mid)
     
     def train(self, sess, train_writer, test_writer):
         train_dataset = self.data_generator.train_dataset
@@ -158,7 +163,8 @@ class HyperPictureFramework:
         def run_train(step_num):
             tensors = [self.merged, self.loss_op, self.train_op]
 
-            alpha_param = (step_num // 1000) + 1
+            # alpha_param = (step_num // 1000) + 1
+            alpha_param = self.copute_alpha_param(step_num)
 
             fd = {self.handle: train_handle, self.alpha: alpha_param}
 
