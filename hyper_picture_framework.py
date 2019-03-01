@@ -148,10 +148,11 @@ class HyperPictureFramework:
         test_writer.add_summary(test_summary, step_num)
         test_writer.flush()
 
-    def copute_alpha_param(self, step_num, max_val=50, when_mid=100000):
-        def sigmoid(x):
-            return 1 / (1 + math.exp(-x))
-        return max_val * sigmoid(step_num + when_mid)
+    def copute_alpha_param(self, step_num, max_val=50, when_mid=10000):
+        return min(max_val, 1 + step_num / when_mid)
+        # def sigmoid(x):
+        #     return 1 / (1 + math.exp(-x))
+        # return 1 + max_val * sigmoid(step_num - when_mid)
     
     def train(self, sess, train_writer, test_writer):
         train_dataset = self.data_generator.train_dataset
