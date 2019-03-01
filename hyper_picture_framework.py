@@ -62,6 +62,7 @@ class HyperPictureFramework:
 
         tf.summary.scalar('PSNR_train_quant', self.PSNR_train_quant)
         tf.summary.scalar('PSNR_train_cont', self.PSNR_train_cont)
+        tf.summary.scalar('alpha', self.alpha)
         # tf.summary.scalar('SSIM_quant', self.SSIM_quant)
 
         self.merged = tf.summary.merge_all()
