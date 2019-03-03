@@ -157,7 +157,7 @@ def resize_img_with_net(model, img, crop_size):
     # It should be investiated, why a single element batch causes a problem.
     single_img = img.reshape(1, crop_size, crop_size, 3)
     batched = np.repeat(single_img, 16, axis=0)
-    fd = {model.X: single_img}
+    fd = {model.X: single_img, model.alpha: model.hparams.max_alpha}
     out_img = model.sess.run([model.aec_network.quant_decoded], feed_dict=fd)[0]
     return np.reshape(out_img[0], (crop_size, crop_size, 3))
 
