@@ -49,6 +49,7 @@ parser.add_argument("--noise_level",default=15, type=int)
 parser.add_argument("--vgg_loss_lambda",default=0.005,type=float)
 
 parser.add_argument("--max_alpha",default=50.0,type=float)
+parser.add_argument("--alpha_div",default=100000,type=float)
 
 args = parser.parse_args()
 
@@ -101,6 +102,7 @@ hyper_parameters = {
     'vgg_loss_lambda': args.vgg_loss_lambda,
 
     'max_alpha': args.max_alpha,
+    'alpha_div': args.alpha_div,
 }
 for a,b in hyper_parameters.items():
     hparams.add_hparam(a, b)

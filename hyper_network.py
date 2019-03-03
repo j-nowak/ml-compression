@@ -148,7 +148,8 @@ class HyperNetwork:
         return encoded
 
     def decode(self, encoded):
-        x = encoded
+        # encoded in [0, 1]
+        x = 2 * (encoded - 0.5)
 
         # 8x8x64
         x = tf.layers.conv2d(inputs=x, filters=64, kernel_size=(5, 5), strides=(1, 1), padding='same')
@@ -246,7 +247,7 @@ class HyperNetwork:
         with tf.variable_scope("DECODER", reuse=True) as scope:
             cont_decoded = self.decode(cont_encoded)
 
-        quantized = self.simple_quant(cont_encoded)
+        quantized = self.simple_quant(encoded)
         with tf.variable_scope("DECODER", reuse=True) as scope:
             quant_decoded = self.decode(quantized)
         

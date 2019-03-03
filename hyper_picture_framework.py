@@ -148,7 +148,7 @@ class HyperPictureFramework:
         test_writer.add_summary(test_summary, step_num)
         test_writer.flush()
 
-    def copute_alpha_param(self, step_num, max_val, when_mid=10000):
+    def copute_alpha_param(self, step_num, max_val, when_mid):
         return min(max_val, 1 + step_num / when_mid)
         # def sigmoid(x):
         #     return 1 / (1 + math.exp(-x))
@@ -166,7 +166,7 @@ class HyperPictureFramework:
             tensors = [self.merged, self.loss_op, self.train_op]
 
             # alpha_param = (step_num // 1000) + 1
-            alpha_param = self.copute_alpha_param(step_num, self.hparams.max_alpha)
+            alpha_param = self.copute_alpha_param(step_num, self.hparams.max_alpha, self.hparams.alpha_div)
 
             fd = {self.handle: train_handle, self.alpha: alpha_param}
 
