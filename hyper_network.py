@@ -246,7 +246,7 @@ class HyperNetwork:
         with tf.variable_scope("DECODER", reuse=True) as scope:
             cont_decoded = self.decode(cont_encoded)
 
-        quantized = self.simple_quant(encoded)
+        quantized = self.simple_quant(cont_encoded)
         with tf.variable_scope("DECODER", reuse=True) as scope:
             quant_decoded = self.decode(quantized)
         
