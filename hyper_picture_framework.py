@@ -35,18 +35,19 @@ class HyperPictureFramework:
         self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
         self.distortion_loss = tf.losses.mean_squared_error(self.Y, self.aec_network.decoded)
-        # self.distortion_loss_quantized = tf.losses.mean_squared_error(self.Y, self.aec_network.quant_decoded)
+        self.distortion_loss_quantized = tf.losses.mean_squared_error(self.Y, self.aec_network.quant_decoded)
         self.distortion_loss_cont = tf.losses.mean_squared_error(self.Y, self.aec_network.cont_decoded)
         
         # self.loss_op = self.distortion_loss + self.distortion_loss_quantized
-        self.loss_op = self.distortion_loss + self.distortion_loss_cont
+        # self.loss_op = self.distortion_loss + self.distortion_loss_cont
+        self.loss_op = self.distortion_loss + self.distortion_loss_cont + self.distortion_loss_quantized
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) # this trains batch normalziation
         with tf.control_dependencies(update_ops):
             self.train_op = self.optimizer.minimize(self.loss_op)
 
         self.PSNR_train = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.decoded, max_val=1.0))
-        self.SSIM_train = tf.reduce_mean(tf.image.ssim(self.Y, self.aec_network.decoded, max_val=1.0))
+        # self.SSIM_train = tf.reduce_mean(tf.image.ssim(self.Y, self.aec_network.decoded, max_val=1.0))
         
         self.PSNR_train_quant = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.quant_decoded, max_val=1.0))
         self.PSNR_train_cont = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.cont_decoded, max_val=1.0))
@@ -54,16 +55,17 @@ class HyperPictureFramework:
         tf.summary.scalar('total_loss', self.loss_op)
         # tf.summary.scalar('vgg_loss', self.vgg_loss)
         tf.summary.scalar('distortion_loss', self.distortion_loss)
-        # tf.summary.scalar('distortion_loss_quantized', self.distortion_loss_quantized)
+        tf.summary.scalar('distortion_loss_quantized', self.distortion_loss_quantized)
         tf.summary.scalar('distortion_loss_cont', self.distortion_loss_cont)
 
         tf.summary.scalar('PSNR_train', self.PSNR_train)
-        tf.summary.scalar('SSIM_train', self.SSIM_train)
-
         tf.summary.scalar('PSNR_train_quant', self.PSNR_train_quant)
         tf.summary.scalar('PSNR_train_cont', self.PSNR_train_cont)
+
         tf.summary.scalar('alpha', self.alpha)
+
         # tf.summary.scalar('SSIM_quant', self.SSIM_quant)
+        # tf.summary.scalar('SSIM_train', self.SSIM_train)
 
         self.merged = tf.summary.merge_all()
 
@@ -165,7 +167,6 @@ class HyperPictureFramework:
         def run_train(step_num):
             tensors = [self.merged, self.loss_op, self.train_op]
 
-            # alpha_param = (step_num // 1000) + 1
             alpha_param = self.copute_alpha_param(step_num, self.hparams.max_alpha, self.hparams.alpha_div)
 
             fd = {self.handle: train_handle, self.alpha: alpha_param}
