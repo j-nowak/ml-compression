@@ -40,7 +40,8 @@ class HyperPictureFramework:
         
         # self.loss_op = self.distortion_loss + self.distortion_loss_quantized
         # self.loss_op = self.distortion_loss + self.distortion_loss_cont
-        self.loss_op = self.distortion_loss + self.distortion_loss_cont + self.distortion_loss_quantized
+        # self.loss_op = self.distortion_loss + self.distortion_loss_cont + self.distortion_loss_quantized
+        self.loss_op = self.distortion_loss_cont + self.distortion_loss_quantized
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) # this trains batch normalziation
         with tf.control_dependencies(update_ops):
@@ -54,7 +55,7 @@ class HyperPictureFramework:
 
         tf.summary.scalar('total_loss', self.loss_op)
         # tf.summary.scalar('vgg_loss', self.vgg_loss)
-        tf.summary.scalar('distortion_loss', self.distortion_loss)
+        # tf.summary.scalar('distortion_loss', self.distortion_loss)
         tf.summary.scalar('distortion_loss_quantized', self.distortion_loss_quantized)
         tf.summary.scalar('distortion_loss_cont', self.distortion_loss_cont)
 
