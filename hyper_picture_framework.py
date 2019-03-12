@@ -36,32 +36,30 @@ class HyperPictureFramework:
 
         self.distortion_loss = tf.losses.mean_squared_error(self.Y, self.aec_network.decoded)
         self.distortion_loss_quantized = tf.losses.mean_squared_error(self.Y, self.aec_network.quant_decoded)
-        self.distortion_loss_cont = tf.losses.mean_squared_error(self.Y, self.aec_network.cont_decoded)
+        # self.distortion_loss_cont = tf.losses.mean_squared_error(self.Y, self.aec_network.cont_decoded)
         
-        # self.loss_op = self.distortion_loss + self.distortion_loss_quantized
+        self.loss_op = self.distortion_loss + self.distortion_loss_quantized
         # self.loss_op = self.distortion_loss + self.distortion_loss_cont
         # self.loss_op = self.distortion_loss + self.distortion_loss_cont + self.distortion_loss_quantized
-        self.loss_op = self.distortion_loss_cont + self.distortion_loss_quantized
+        # self.loss_op = self.distortion_loss_cont + self.distortion_loss_quantized
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS) # this trains batch normalziation
         with tf.control_dependencies(update_ops):
             self.train_op = self.optimizer.minimize(self.loss_op)
 
-        self.PSNR_train = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.decoded, max_val=1.0))
-        # self.SSIM_train = tf.reduce_mean(tf.image.ssim(self.Y, self.aec_network.decoded, max_val=1.0))
-        
+        self.PSNR_train = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.decoded, max_val=1.0))        
         self.PSNR_train_quant = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.quant_decoded, max_val=1.0))
-        self.PSNR_train_cont = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.cont_decoded, max_val=1.0))
+        # self.PSNR_train_cont = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.cont_decoded, max_val=1.0))
 
         tf.summary.scalar('total_loss', self.loss_op)
         # tf.summary.scalar('vgg_loss', self.vgg_loss)
-        # tf.summary.scalar('distortion_loss', self.distortion_loss)
+        tf.summary.scalar('distortion_loss', self.distortion_loss)
         tf.summary.scalar('distortion_loss_quantized', self.distortion_loss_quantized)
-        tf.summary.scalar('distortion_loss_cont', self.distortion_loss_cont)
+        # tf.summary.scalar('distortion_loss_cont', self.distortion_loss_cont)
 
         tf.summary.scalar('PSNR_train', self.PSNR_train)
         tf.summary.scalar('PSNR_train_quant', self.PSNR_train_quant)
-        tf.summary.scalar('PSNR_train_cont', self.PSNR_train_cont)
+        # tf.summary.scalar('PSNR_train_cont', self.PSNR_train_cont)
 
         tf.summary.scalar('alpha', self.alpha)
 
@@ -152,10 +150,7 @@ class HyperPictureFramework:
         test_writer.flush()
 
     def copute_alpha_param(self, step_num, max_val, when_mid):
-        return min(max_val, 1 + step_num / when_mid)
-        # def sigmoid(x):
-        #     return 1 / (1 + math.exp(-x))
-        # return 1 + max_val * sigmoid(step_num - when_mid)
+        return min(max_val, step_num / when_mid)
     
     def train(self, sess, train_writer, test_writer):
         train_dataset = self.data_generator.train_dataset

@@ -76,7 +76,8 @@ class HyperNetwork:
         with tf.name_scope('aec'):
             # self.build_net(x)
             # self.build_net_comparison(x)
-            self.build_net_contquant(x, alpha)
+            # self.build_net_contquant(x, alpha)
+            self.build_net_contdiscretequant(x, alpha)
 
     def quntize(self, encoded):
         if self.hparams.quant_method == 1:
@@ -105,6 +106,12 @@ class HyperNetwork:
         # latent_hist = tf.summary.histogram('discret_latent', tf.reshape(tf.cast(q, tf.int8), [-1]))
 
         return dq
+
+    def transform(self, x, alhpa):
+        res = x - alhpa * (tf.math.sin(2 * np.pi * x) / (2 * np.pi))
+        res = tf.math.maximum(0.0, res)
+        res = tf.math.minimum(self.hparams.quant_size, res)
+        return res
 
     def encode(self, x, alpha=1.0):
         # 64x64x64
@@ -141,9 +148,7 @@ class HyperNetwork:
         encoded = x
         encoded = tf.layers.conv2d(inputs=encoded, filters=16, kernel_size=(5, 5), strides=(1, 1), padding='same')
 
-        encoded = encoded * alpha
-
-        encoded = tf.nn.sigmoid(encoded)
+        encoded = self.transform(encoded, alpha)
 
         return encoded
 
@@ -190,7 +195,7 @@ class HyperNetwork:
 
         # 64x64x3
         x = tf.layers.conv2d(inputs=x, filters=self.hparams.channels, kernel_size=(5, 5), strides=(1, 1), padding='same')
-        x = tf.nn.sigmoid(x)
+        # x = tf.nn.sigmoid(x)
 
         # 64x64x3
         decoded = x
@@ -258,6 +263,31 @@ class HyperNetwork:
 
         tf.summary.histogram('encoded', tf.reshape(encoded, [-1]))
         tf.summary.histogram('cont_encoded', tf.reshape(cont_encoded, [-1]))
+
+        print('Latent:', encoded.shape)
+        print('Decoded:', decoded.shape)
+
+    def just_round(self, encoded):
+        q = encoded
+        q = tf.stop_gradient(tf.round(q))
+        dq = q / self.hparams.quant_size
+        return dq
+
+    def build_net_contdiscretequant(self, x, alpha):
+        with tf.variable_scope("ENCODER", reuse=False) as scope:
+            encoded = self.encode(x, alpha)
+        with tf.variable_scope("DECODER", reuse=False) as scope:
+            decoded = self.decode(encoded)
+
+        quantized = self.just_round(encoded)
+        with tf.variable_scope("DECODER", reuse=True) as scope:
+            quant_decoded = self.decode(quantized)
+        
+        self.encoded = encoded
+        self.decoded = decoded
+        self.quant_decoded = quant_decoded
+
+        tf.summary.histogram('encoded', tf.reshape(encoded, [-1]))
 
         print('Latent:', encoded.shape)
         print('Decoded:', decoded.shape)
