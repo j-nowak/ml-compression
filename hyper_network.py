@@ -289,7 +289,7 @@ class HyperNetwork:
         self.decoded = decoded
         self.quant_decoded = quant_decoded
 
-        # tf.summary.histogram('encoded', tf.reshape(encoded, [-1]))
+        tf.summary.histogram('encoded', tf.reshape(encoded, [-1]))
 
         print('Latent:', encoded.shape)
         print('Decoded:', decoded.shape)
