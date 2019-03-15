@@ -109,8 +109,6 @@ class HyperNetwork:
 
     def transform(self, x, alhpa):
         res = x - alhpa * (tf.math.sin(2 * np.pi * x) / (2 * np.pi))
-        res = tf.math.maximum(0.0, res)
-        res = tf.math.minimum(self.hparams.quant_size, res)
         return res
 
     def encode(self, x, alpha=1.0):
@@ -148,7 +146,10 @@ class HyperNetwork:
         encoded = x
         encoded = tf.layers.conv2d(inputs=encoded, filters=16, kernel_size=(5, 5), strides=(1, 1), padding='same')
 
+        encoded = tf.nn.sigmoid(encoded)
+        encoded = encoded * self.hparams.quant_size
         encoded = self.transform(encoded, alpha)
+        encoded = encoded / self.hparams.quant_size
 
         return encoded
 
@@ -269,6 +270,7 @@ class HyperNetwork:
 
     def just_round(self, encoded):
         q = encoded
+        q = q * self.hparams.quant_size
         q = tf.stop_gradient(tf.round(q))
         dq = q / self.hparams.quant_size
         return dq
@@ -287,7 +289,7 @@ class HyperNetwork:
         self.decoded = decoded
         self.quant_decoded = quant_decoded
 
-        tf.summary.histogram('encoded', tf.reshape(encoded, [-1]))
+        # tf.summary.histogram('encoded', tf.reshape(encoded, [-1]))
 
         print('Latent:', encoded.shape)
         print('Decoded:', decoded.shape)
