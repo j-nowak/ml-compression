@@ -16,6 +16,12 @@ def round_with_id_grad(x):
     return tf.round(x), grad
 
 @tf.custom_gradient
+def floor_with_id_grad(x):
+    def grad(dy):
+        return dy
+    return tf.floor(x), grad
+
+@tf.custom_gradient
 def round_with_const_grad(x):
     def grad(dy):
         return 1 + 0 * dy
@@ -68,6 +74,14 @@ def residual(x, filters_num):
     x = x + ry
     return x
 
+def left_half(in_x, n):
+    return tf.pow(2.0 * in_x, n) / 2.0
+def right_half(in_x, n):
+    return -tf.pow(2.0 * (1 - in_x), n) / 2.0 + 1.0
+
+def staircase(x, alpha):
+    return tf.where(tf.less(x, 0.5), left_half(x, alpha), right_half(x, alpha))
+
 class HyperNetwork:
     def __init__(self, x, hparams, alpha):
         self.hparams = hparams
@@ -113,6 +127,23 @@ class HyperNetwork:
         res = tf.math.minimum(self.hparams.quant_size, res)
         return res
 
+    def transform_v2(self, x, alpha):
+        # alpha = tf.Print(alpha, [alpha], message="alpha:")
+        x = tf.math.maximum(0.0, x) 
+        x = tf.math.minimum(self.hparams.quant_size, x)
+        # x = tf.Print(x, [x], message="xxx:")
+      
+        floor_x = floor_with_id_grad(x)
+        mantis = x - floor_x
+        # mantis = tf.Print(mantis, [mantis], message="mantis:")
+        
+        stair = staircase(mantis, alpha)
+        # stair = tf.Print(stair, [stair], message="stair:")
+
+        res = floor_x + stair
+
+        return res
+
     def encode(self, x, alpha=1.0):
         # 64x64x64
         x = tf.layers.conv2d(inputs=x, filters=64, kernel_size=(5, 5), strides=(1, 1), padding='same')
@@ -150,7 +181,7 @@ class HyperNetwork:
 
         # encoded = tf.nn.sigmoid(encoded)
         # encoded = encoded * self.hparams.quant_size
-        encoded = self.transform(encoded, alpha)
+        encoded = self.transform_v2(encoded, alpha)
         encoded = encoded / self.hparams.quant_size
 
         return encoded

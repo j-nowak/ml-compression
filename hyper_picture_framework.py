@@ -150,7 +150,7 @@ class HyperPictureFramework:
         test_writer.flush()
 
     def copute_alpha_param(self, step_num, max_val, when_mid):
-        return min(max_val, step_num / when_mid)
+        return 1 + min(max_val, step_num / when_mid)
     
     def train(self, sess, train_writer, test_writer):
         train_dataset = self.data_generator.train_dataset
