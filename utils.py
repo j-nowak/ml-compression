@@ -193,19 +193,12 @@ def compute_stats(truth_img, result_img, model):
     return ms_yuv, ps_yuv, ss_yuv, ms_rgb, ps_rgb, ss_rgb
 
 def test_single_image(model, img_path, batch_size, crop_size, step):
-    truth_image = img_to_np(Image.open(img_path))
-
-    if model.hparams.in_func == 'noise':
-        noised_image = add_noise(truth_image, model.hparams.noise_level)
-    else:
-        noised_image = truth_image
-
-    input_image = Image.fromarray(np.uint8(noised_image * 255))
-
-    result_image = process_img(model, input_image, crop_size, step, batch_size)
-    
+    input_image = Image.open(img_path)
+    truth_image = celeba_crop(input_image, crop_size)
+    result_image = resize_img_with_net(model, truth_image, crop_size)    
     ms_yuv, ps_yuv, ss_yuv, ms_rgb, ps_rgb, ss_rgb = compute_stats(truth_image, result_image, model)
-    return ms_yuv, ps_yuv, ss_yuv, ms_rgb, ps_rgb, ss_rgb, (truth_image, noised_image, result_image)
+    
+    return ms_yuv, ps_yuv, ss_yuv, ms_rgb, ps_rgb, ss_rgb, (truth_image, truth_image, result_image)
     
 def run_tests(all_img_paths, model, crop_size, step, batch_size=16):
     ms_ssims_yuv, psnrs_yuv, ssims_yuv, ms_ssims_rgb, psnrs_rgb, ssims_rgb = [], [], [], [], [], []

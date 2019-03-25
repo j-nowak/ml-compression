@@ -1,6 +1,7 @@
 from glob import glob
 from tqdm import tqdm
 from PIL import Image
+import PIL
 
 import tensorflow as tf
 import scipy.misc
@@ -149,13 +150,32 @@ class NoisyImageGenerator:
     def train_data_generator(self):
         return self.__generator(self.img_list)
 
+def celeba_crop(celeb_img, crop_size):
+    crop_box = (25, 50, 25 + 2 * crop_size, 50 + 2 * crop_size)
+    cropped = celeb_img.crop(crop_box)
+    resized = cropped.resize((crop_size, crop_size), PIL.Image.NEAREST)
+    return img_to_np(resized)
+
+class CelebaImageGenerator:
+    def __init__(self, path, crop_size):
+        self.img_list = glob(path + '/*')
+        self.crop_size = crop_size
+
+    def __generator(self, all_imgs):
+        img_paths = all_imgs[:]
+        random.shuffle(img_paths)
+        for img_path in img_paths:
+            target_img = Image.open(img_path)
+            prepared_img = celeba_crop(target_img, self.crop_size)
+            yield prepared_img, prepared_img
+
+    def train_data_generator(self):
+        return self.__generator(self.img_list)
+
 class Dataset:
     def __init__(self, hparams):
-        # if hparams.in_func == 'noise':
-        self.data_generator = NoisyImageGenerator(hparams.train_dataset_path, hparams.in_img_width, hparams.batch_size, hparams.noise_level, hparams.in_func)
-        # else:
-        #     self.data_generator = HeavyImageGenerator(hparams.train_dataset_path, hparams.in_img_width, hparams.batch_size, hparams.noise_level)
-
+        self.data_generator = CelebaImageGenerator(hparams.train_dataset_path, 64)
+        self.train_dataset = self.__prepare_train_dataset(hparams)
         self.train_dataset = self.__prepare_train_dataset(hparams)
 
     def __prepare_train_dataset(self, hparams):
