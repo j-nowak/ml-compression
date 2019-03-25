@@ -27,9 +27,7 @@ parser.add_argument("--decay_rate",default=0.92,type=float)
 parser.add_argument("--img_x",default=39,type=int)
 parser.add_argument("--img_y",default=39,type=int)
 parser.add_argument("--channels",default=3,type=int)
-parser.add_argument("--in_func",default="none")
 
-parser.add_argument("--to_yuv",default=False,type=bool)
 parser.add_argument("--quant_method",default=0,type=int)
 parser.add_argument("--quant_size",default=128.0,type=float)
 parser.add_argument("--resnet_type",default=0,type=int)
@@ -40,32 +38,10 @@ parser.add_argument("--test_per_iterations",default=500, type=int)
 
 parser.add_argument("--queue_capacity",default=32, type=int) 
 
-parser.add_argument('--target_layers', default=[2, 32, 64, 256, 64, 3], nargs='+', type=int)
-# parser.add_argument('--target_layers', default=[2, 32, 128, 256, 128, 64, 3], nargs='+', type=int)
-parser.add_argument('--trainables_mask', default='T,T,T,T,T')
-
-parser.add_argument("--noise_level",default=15, type=int)
-
-parser.add_argument("--vgg_loss_lambda",default=0.005,type=float)
-
 parser.add_argument("--max_alpha",default=50.0,type=float)
 parser.add_argument("--alpha_div",default=100000,type=float)
 
 args = parser.parse_args()
-
-def parse_mask(mask_str):
-    def get_mask(str):
-        if str == 'T':
-            return True
-        else:
-            return False
-    return [get_mask(s) for s in mask_str.split(',')]
-
-target_layers = args.target_layers
-
-trainables_mask = parse_mask(args.trainables_mask)
-trainable_layers = [[target_layers[i], target_layers[i + 1]] for i in range(len(trainables_mask)) if trainables_mask[i]]
-const_layers = [(target_layers[i], target_layers[i + 1]) for i in range(len(trainables_mask)) if not trainables_mask[i]]
 
 hparams = HParams()
 hyper_parameters = {
@@ -78,9 +54,7 @@ hyper_parameters = {
     'in_img_width': args.img_x,
     'in_img_height': args.img_y,
     'channels': args.channels,
-    'in_func': args.in_func,
 
-    'to_yuv': args.to_yuv,
     'quant_method': args.quant_method,
     'quant_size': args.quant_size,
     'resnet_type': args.resnet_type,
@@ -93,13 +67,6 @@ hyper_parameters = {
     'steps': args.steps,
     'test_per_iterations': args.test_per_iterations,
     'queue_capacity':args.queue_capacity,
-
-    'target_layers': trainable_layers,
-    'trainables_mask': trainables_mask,
-
-    'noise_level': args.noise_level,
-
-    'vgg_loss_lambda': args.vgg_loss_lambda,
 
     'max_alpha': args.max_alpha,
     'alpha_div': args.alpha_div,
