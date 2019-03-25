@@ -122,15 +122,14 @@ class HyperPictureFramework:
         input_dataset = self.data_generator.train_dataset
         self.handle = tf.placeholder(tf.string, shape = [])
         self.iterator = tf.data.Iterator.from_string_handle(self.handle, input_dataset.output_types, input_dataset.output_shapes)
-        el = self.iterator.get_next()
-        in_img_tensor, out_img_tensor = el[0], el[1]
+        in_img_tensor = self.iterator.get_next()
 
         in_width = self.hparams.in_img_width
         in_height = self.hparams.in_img_width
         in_depth = self.hparams.channels
 
         self.X = tf.reshape(in_img_tensor, shape=[-1, in_width, in_height, in_depth])
-        self.Y = tf.reshape(out_img_tensor, shape=[-1, in_width, in_height, in_depth])
+        self.Y = tf.reshape(in_img_tensor, shape=[-1, in_width, in_height, in_depth])
         
     def run_test_mode(self, sess, step_num, test_writer):
         test_images_paths = glob(self.hparams.test_dataset_path + '/*')
