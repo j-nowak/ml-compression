@@ -56,11 +56,20 @@ def test_single_image(model, img_path, batch_size, crop_size, step):
     
     ms_yuv, ps_yuv, ss_yuv, ms_rgb, ps_rgb, ss_rgb = compute_stats(truth_image, result_image, model)
     return ms_yuv, ps_yuv, ss_yuv, ms_rgb, ps_rgb, ss_rgb, (truth_image, result_image)
+
+def test_single_image_celeb(model, img_path, batch_size, crop_size, step):
+    input_image = Image.open(img_path)
+    truth_image = celeba_crop(input_image, 64)
+
+    result_image = run_through_net(model, truth_image, crop_size)
+    
+    ms_yuv, ps_yuv, ss_yuv, ms_rgb, ps_rgb, ss_rgb = compute_stats(truth_image, result_image, model)
+    return ms_yuv, ps_yuv, ss_yuv, ms_rgb, ps_rgb, ss_rgb, (truth_image, result_image)
     
 def run_tests(all_img_paths, model, crop_size, step, batch_size=16):
     ms_ssims_yuv, psnrs_yuv, ssims_yuv, ms_ssims_rgb, psnrs_rgb, ssims_rgb = [], [], [], [], [], []
     for img_path in tqdm(all_img_paths):
-        ms_yuv, ps_yuv, ss_yuv, ms_rgb, ps_rgb, ss_rgb, _ = test_single_image(model, img_path, batch_size, crop_size, step)
+        ms_yuv, ps_yuv, ss_yuv, ms_rgb, ps_rgb, ss_rgb, _ = model.image_test_func(model, img_path, batch_size, crop_size, step)
         
         ms_ssims_yuv.append(ms_yuv)
         psnrs_yuv.append(ps_yuv)
