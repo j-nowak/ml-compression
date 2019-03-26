@@ -15,11 +15,13 @@ from skimage.measure import compare_psnr
 
 class HyperPictureFramework:
     
-    def __init__(self, hparams, data_generator, model_name, saved_models_dir):
+    def __init__(self, hparams, data_generator, model_name, saved_models_dir, image_test_func):
         self.hparams = hparams
 
         self.model_name = model_name
         self.saved_models_dir = saved_models_dir
+
+        self.image_test_func = image_test_func
 
         self.data_generator = data_generator
         
