@@ -136,7 +136,7 @@ class HyperPictureFramework:
         test_writer.flush()
 
     def copute_alpha_param(self, step_num, max_val, when_mid):
-        return 1 + min(max_val, 1 + step_num / when_mid)
+        return min(max_val, 1 + step_num / when_mid)
         # def sigmoid(x):
         #     return 1 / (1 + math.exp(-x))
         # return 1 + max_val * sigmoid(step_num - when_mid)
