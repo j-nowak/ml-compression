@@ -10,8 +10,8 @@ from compress_target_network import *
 import utils
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--dataset",default="data/DIV2K_train_HR")
-parser.add_argument('--test_dataset', default='/home/jakub/Studia/mgr/networks-do-networks/data/kodak')
+parser.add_argument("--dataset",default="data/img_align_celeba/train")
+parser.add_argument('--test_dataset', default='data/img_align_celeba/test')
 
 parser.add_argument("--train_dir",default="train")
 parser.add_argument("--tensorboard",default="tensorboard")
@@ -76,7 +76,7 @@ for a,b in hyper_parameters.items():
     hparams.add_hparam(a, b)
 
 # Load data
-data_generator = Dataset(hparams)
+data_generator = CelebaDataset(hparams)
 
 # Prepare train dirs
 model_name = args.model_name + '_' + datetime.datetime.now().strftime("%Y_%m_%d__%H_%M_%S")
@@ -94,7 +94,7 @@ tensorboard_train_dir = args.train_dir + '/' + args.tensorboard + '/' + model_na
 tensorboard_test_dir = args.train_dir + '/' + args.tensorboard + '/' + model_name + '/test'
 
 # Build net
-network = HyperPictureFramework(hparams, data_generator, model_name, saved_models_dir, utils.test_single_image)
+network = HyperPictureFramework(hparams, data_generator, model_name, saved_models_dir, utils.test_single_image_celeb)
 if hparams.checkpoint != '': 
     print('To restore graph you need to put metagraph path and directorty that contains checkpoint')
     if hparams.metagraph == '':

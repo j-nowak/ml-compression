@@ -15,11 +15,13 @@ from skimage.measure import compare_psnr
 
 class HyperPictureFramework:
     
-    def __init__(self, hparams, data_generator, model_name, saved_models_dir):
+    def __init__(self, hparams, data_generator, model_name, saved_models_dir, image_test_func):
         self.hparams = hparams
 
         self.model_name = model_name
         self.saved_models_dir = saved_models_dir
+
+        self.image_test_func = image_test_func
 
         self.data_generator = data_generator
         
@@ -34,7 +36,7 @@ class HyperPictureFramework:
                                                    self.hparams.decay_steps, self.hparams.decay_rate, staircase=True)
         self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
-        self.distortion_loss = tf.losses.mean_squared_error(self.Y, self.aec_network.decoded)
+        # self.distortion_loss = tf.losses.mean_squared_error(self.Y, self.aec_network.decoded)
         self.distortion_loss_quantized = tf.losses.mean_squared_error(self.Y, self.aec_network.quant_decoded)
         # self.distortion_loss_cont = tf.losses.mean_squared_error(self.Y, self.aec_network.cont_decoded)
         
@@ -48,6 +50,7 @@ class HyperPictureFramework:
             self.train_op = self.optimizer.minimize(self.loss_op)
 
         self.PSNR_train = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.decoded, max_val=1.0))        
+        # self.PSNR_train = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.decoded, max_val=1.0))        
         self.PSNR_train_quant = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.quant_decoded, max_val=1.0))
         # self.PSNR_train_cont = tf.reduce_mean(tf.image.psnr(self.Y, self.aec_network.cont_decoded, max_val=1.0))
 
@@ -55,9 +58,11 @@ class HyperPictureFramework:
         # tf.summary.scalar('vgg_loss', self.vgg_loss)
         tf.summary.scalar('distortion_loss', self.distortion_loss)
         tf.summary.scalar('distortion_loss_quantized', self.distortion_loss_quantized)
+        # tf.summary.scalar('distortion_loss', self.distortion_loss)
+        # tf.summary.scalar('distortion_loss_quantized', self.distortion_loss_quantized)
         # tf.summary.scalar('distortion_loss_cont', self.distortion_loss_cont)
 
-        tf.summary.scalar('PSNR_train', self.PSNR_train)
+        # tf.summary.scalar('PSNR_train', self.PSNR_train)
         tf.summary.scalar('PSNR_train_quant', self.PSNR_train_quant)
         # tf.summary.scalar('PSNR_train_cont', self.PSNR_train_cont)
 
@@ -81,24 +86,6 @@ class HyperPictureFramework:
         new_saver = tf.train.import_meta_graph(metagraph)
         new_saver.restore(self.sess, tf.train.latest_checkpoint(checkpoint))
 
-    def add_vggnet(self):
-        def vgg_features(tf_image_input):
-            vgg_input = tf.reshape(tf_image_input, [-1, 64, 64, 3]) - 0.5
-            vgg_input = keras.layers.Input(batch_shape=(16, 64, 64, 3), tensor=vgg_input)        
-            vgg_model = keras.applications.vgg16.VGG16(
-                include_top=False, 
-                weights='imagenet',
-                input_tensor=vgg_input,
-                input_shape=(self.hparams.in_img_width, self.hparams.in_img_height, self.hparams.channels), 
-                pooling=None)
-            vgg_model.layers.pop()
-            vgg_features = vgg_model.layers[-1].output
-            return vgg_features
-
-        truth_features = vgg_features(self.Y)
-        aec_features = vgg_features(self.target_network.logits)
-        self.vgg_loss = self.hparams.vgg_loss_lambda * tf.losses.mean_squared_error(truth_features, aec_features)
-
     def __build_stats(self):
         self.truth_img = tf.placeholder(tf.float32, shape=(None, None, 3))
         self.result_img = tf.placeholder(tf.float32, shape=(None, None, 3))
@@ -106,11 +93,11 @@ class HyperPictureFramework:
         truth_yuv = tf.image.rgb_to_yuv(self.truth_img)
         result_yuv = tf.image.rgb_to_yuv(self.result_img)
         
-        self.test_ms_ssim_yuv = tf.image.ssim_multiscale(truth_yuv, result_yuv, 1.0)
+        self.test_ms_ssim_yuv = tf.image.ssim_multiscale(truth_yuv, result_yuv, 1.0, power_factors=(0.0448, 0.2856, 0.3001))
         self.test_psnr_yuv = tf.image.psnr(truth_yuv, result_yuv, 1.0)
         self.test_ssim_yuv = tf.image.ssim(truth_yuv, result_yuv, 1.0)
 
-        self.test_ms_ssim_rgb = tf.image.ssim_multiscale(self.truth_img, self.result_img, 1.0)
+        self.test_ms_ssim_rgb = tf.image.ssim_multiscale(self.truth_img, self.result_img, 1.0, power_factors=(0.0448, 0.2856, 0.3001))
         self.test_psnr_rgb = tf.image.psnr(self.truth_img, self.result_img, 1.0)
         self.test_ssim_rgb = tf.image.ssim(self.truth_img, self.result_img, 1.0)
         
