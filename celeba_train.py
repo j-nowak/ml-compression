@@ -6,7 +6,6 @@ import pathlib
 from hyper_picture_framework import HyperPictureFramework
 from tensorflow.contrib.training import HParams
 from lazy_datasets import *
-from compress_target_network import *
 import utils
 
 parser = argparse.ArgumentParser()
