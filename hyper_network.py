@@ -27,31 +27,6 @@ def round_with_const_grad(x):
         return 1 + 0 * dy
     return tf.round(x), grad
 
-def _phase_shift(I, r):
-       # Helper function with main phase shift operation
-       _, a, b, c = I.get_shape().as_list()
-       X = tf.reshape(I, (-1, a, b, r, r))
-       X = tf.split(X, a, 1)  # a, [bsize, b, r, r]
-       X = tf.concat([tf.squeeze(x) for x in X], 2)  # bsize, b, a*r, r
-       X = tf.split(X, b, 1)  # b, [bsize, a*r, r]
-       X = tf.concat([tf.squeeze(x) for x in X], 2)  # bsize, a*r, b*r
-       return tf.reshape(X, (-1, a*r, b*r, 1))
-
-def PS(X, r, color=False):
-  # Main OP that you can arbitrarily use in you tensorflow code
-  if color:
-    Xc = tf.split(3, 3, X)
-    X = tf.concat(3, [_phase_shift(x, r) for x in Xc])
-  else:
-    X = _phase_shift(X, r)
-  return X
-
-def prelu(_x, scope=None):
-    with tf.variable_scope(name_or_scope=scope, default_name="prelu"):
-        _alpha = tf.get_variable("prelu", shape=_x.get_shape()[-1],
-                                 dtype=_x.dtype, initializer=tf.constant_initializer(0.1))
-        return tf.maximum(0.0, _x) + _alpha * tf.minimum(0.0, _x)
-
 def downsample(x, filters_num):
     x = tf.layers.conv2d(inputs=x, filters=filters_num, kernel_size=(4, 4), strides=(2, 2), padding='same')
     x = tf.layers.batch_normalization(x)
@@ -301,20 +276,13 @@ class HyperNetwork:
         print('Latent:', encoded.shape)
         print('Decoded:', decoded.shape)
 
-    def just_round(self, encoded):
-        q = encoded
-        q = q * self.hparams.quant_size
-        q = tf.stop_gradient(tf.round(q))
-        dq = q / self.hparams.quant_size
-        return dq
-
     def build_net_contdiscretequant(self, x, alpha):
         with tf.variable_scope("ENCODER", reuse=False) as scope:
             encoded = self.encode(x, alpha)
         with tf.variable_scope("DECODER", reuse=False) as scope:
             decoded = self.decode(encoded)
 
-        quantized = self.just_round(encoded)
+        quantized = self.simple_quant(encoded)
         with tf.variable_scope("DECODER", reuse=True) as scope:
             quant_decoded = self.decode(quantized)
         

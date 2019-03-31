@@ -10,6 +10,8 @@ from compress_target_network import *
 import utils
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--model_type")
+
 parser.add_argument("--dataset",default="data/img_align_celeba/train")
 parser.add_argument('--test_dataset', default='data/img_align_celeba/test')
 
@@ -31,7 +33,6 @@ parser.add_argument("--channels",default=3,type=int)
 
 parser.add_argument("--quant_method",default=0,type=int)
 parser.add_argument("--quant_size",default=128.0,type=float)
-parser.add_argument("--resnet_type",default=0,type=int)
 
 parser.add_argument("--batch_size",default=16,type=int)
 parser.add_argument("--steps",default=100000,type=int)
@@ -46,6 +47,8 @@ args = parser.parse_args()
 
 hparams = HParams()
 hyper_parameters = {
+    'model_type': args.model_type,
+
     'train_dataset_path' : args.dataset,
     'test_dataset_path' : args.test_dataset,
 
@@ -58,7 +61,6 @@ hyper_parameters = {
 
     'quant_method': args.quant_method,
     'quant_size': args.quant_size,
-    'resnet_type': args.resnet_type,
 
     'learning_rate': args.learning_rate,
     'decay_steps':args.decay_steps,
@@ -94,7 +96,7 @@ tensorboard_train_dir = args.train_dir + '/' + args.tensorboard + '/' + model_na
 tensorboard_test_dir = args.train_dir + '/' + args.tensorboard + '/' + model_name + '/test'
 
 # Build net
-network = HyperPictureFramework(hparams, data_generator, model_name, saved_models_dir, utils.test_single_image_celeb)
+network = HyperPictureFramework(hparams, data_generator, model_name, saved_models_dir, utils.test_single_image_celeb, True)
 if hparams.checkpoint != '': 
     print('To restore graph you need to put metagraph path and directorty that contains checkpoint')
     if hparams.metagraph == '':

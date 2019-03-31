@@ -10,6 +10,8 @@ from compress_target_network import *
 import utils
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--model_type")
+
 parser.add_argument("--dataset",default="data/DIV2K_train_HR")
 parser.add_argument('--test_dataset', default='/home/jakub/Studia/mgr/networks-do-networks/data/kodak')
 
@@ -31,7 +33,6 @@ parser.add_argument("--channels",default=3,type=int)
 
 parser.add_argument("--quant_method",default=0,type=int)
 parser.add_argument("--quant_size",default=128.0,type=float)
-parser.add_argument("--resnet_type",default=0,type=int)
 
 parser.add_argument("--batch_size",default=16,type=int)
 parser.add_argument("--steps",default=100000,type=int)
@@ -46,6 +47,8 @@ args = parser.parse_args()
 
 hparams = HParams()
 hyper_parameters = {
+    'model_type': args.model_type,
+    
     'train_dataset_path' : args.dataset,
     'test_dataset_path' : args.test_dataset,
 
@@ -58,7 +61,6 @@ hyper_parameters = {
 
     'quant_method': args.quant_method,
     'quant_size': args.quant_size,
-    'resnet_type': args.resnet_type,
 
     'learning_rate': args.learning_rate,
     'decay_steps':args.decay_steps,
