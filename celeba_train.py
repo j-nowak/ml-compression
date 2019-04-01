@@ -5,8 +5,8 @@ import pathlib
 
 from hyper_picture_framework import HyperPictureFramework
 from tensorflow.contrib.training import HParams
-from lazy_datasets import *
-import utils
+from datasets import *
+import test_utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_type")
@@ -95,7 +95,7 @@ tensorboard_train_dir = args.train_dir + '/' + args.tensorboard + '/' + model_na
 tensorboard_test_dir = args.train_dir + '/' + args.tensorboard + '/' + model_name + '/test'
 
 # Build net
-network = HyperPictureFramework(hparams, data_generator, model_name, saved_models_dir, utils.test_single_image_celeb, True)
+network = HyperPictureFramework(hparams, data_generator, model_name, saved_models_dir, test_utils.test_single_image_celeb, True)
 if hparams.checkpoint != '': 
     print('To restore graph you need to put metagraph path and directorty that contains checkpoint')
     if hparams.metagraph == '':

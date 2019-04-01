@@ -1,5 +1,4 @@
 import tensorflow as tf
-import matplotlib.pyplot as plt
 import numpy as np
 import scipy
 import math
@@ -7,10 +6,8 @@ import io
 import keras
 
 from glob import glob
-from PIL import Image
-from utils import *
+from test_utils import *
 from tqdm import tqdm
-from skimage.measure import compare_psnr
 
 from networks.models import *
 

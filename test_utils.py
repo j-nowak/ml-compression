@@ -5,10 +5,7 @@ import math
 
 from glob import glob
 from PIL import Image
-from skimage.color import rgb2ycbcr
-from skimage.measure import compare_psnr
-from skimage.measure import compare_ssim
-from lazy_datasets import *
+from datasets import *
 from tqdm import tqdm
 
 def run_through_net(model, img, crop_size):

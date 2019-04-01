@@ -94,11 +94,14 @@ def binary_8x8x16_continous(x, target, step_num, hparams):
 
     return total_loss, cont_encoded, decoded, quant_decoded
 
+def __compute_alpha_sinus(step_num, max_alpha, alpha_div):
+    return tf.math.maximum(max_alpha, step_num / alpha_div)
+
 def cont_quant_sinus(x, target, step_num, hparams):
     with tf.variable_scope("ENCODER", reuse=False) as scope:
         encoded = encode_8x8x16(x)
     
-    alpha = __compute_alpha(step_num, hparams.max_alpha, hparams.alpha_div)
+    alpha = __compute_alpha_sinus(step_num, hparams.max_alpha, hparams.alpha_div)
     qparams = { 'alpha': alpha }
     cont_encoded, dequantized = quant_dequant(
         encoded, 
