@@ -78,6 +78,8 @@ class HyperPictureFramework:
             quant_decoded = decoded
         elif self.hparams.model_type == 'bin_8x8x16_cont':
             total_loss, encoded, decoded, quant_decoded = binary_8x8x16_continous(self.X, self.Y, self.step_num, self.hparams)
+        elif self.hparams.model_type == 'binary_16x16x4_continous':
+            total_loss, encoded, decoded, quant_decoded = binary_16x16x4_continous(self.X, self.Y, self.step_num, self.hparams)
         elif self.hparams.model_type == 'cont_quant_sinus':
             total_loss, encoded, decoded, quant_decoded = cont_quant_sinus(self.X, self.Y, self.step_num, self.hparams)
         elif self.hparams.model_type == 'cont_quant_power':

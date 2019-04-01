@@ -100,7 +100,82 @@ def decode_8x8x16(encoded, channels_num=3):
 
     # 64x64x3
     decoded = tf.layers.conv2d(inputs=x, filters=channels_num, kernel_size=(5, 5), strides=(1, 1), padding='same')
-    # decoded = tf.nn.sigmoid(decoded)
+    return decoded
+
+def encode_16x16x4(x):
+    # 64x64x64
+    x = tf.layers.conv2d(inputs=x, filters=64, kernel_size=(5, 5), strides=(1, 1), padding='same')
+    x = tf.nn.relu(x)
+    x = tf.layers.batch_normalization(x)
+
+    # 64x64x64
+    x = residual(x, 64)
+    x = residual(x, 64)
+
+    # 32x32x128
+    x = downsample(x, 128)
+
+    # 32x32x128
+    x = residual(x, 128)
+    x = residual(x, 128)
+
+    # 16x16x128
+    x = downsample(x, 128)
+
+    # 16x16x128
+    x = residual(x, 128)
+    x = residual(x, 128)
+
+    # 16x16x64
+    x = tf.layers.batch_normalization(x)
+    x = tf.nn.relu(x)
+    x = tf.layers.conv2d(inputs=x, filters=64, kernel_size=(3, 3), strides=(1, 1), padding='same')
+
+    # 16x16x64
+    x = residual(x, 64)
+    x = residual(x, 64)
+
+    # 8x8x16
+    return tf.layers.conv2d(inputs=x, filters=4, kernel_size=(5, 5), strides=(1, 1), padding='same')
+
+def decode_16x16x4(encoded, channels_num=3):
+    # encoded in [0, 1]
+    x = 2 * (encoded - 0.5)
+
+    # 16x16x32
+    x = tf.layers.conv2d(inputs=x, filters=32, kernel_size=(5, 5), strides=(1, 1), padding='same')
+    x = tf.nn.relu(x)
+    x = tf.layers.batch_normalization(x)
+
+    # 16x16x32
+    x = residual(x, 32)
+    x = residual(x, 32)
+    x = residual(x, 32)
+
+    # 32x32x64
+    x = upsample(x, 64)
+
+    # 32x32x64
+    x = residual(x, 64)
+    x = residual(x, 64)
+    x = residual(x, 64)
+
+    # 64x64x128
+    x = upsample(x, 128)
+
+    # 64x64x128
+    x = residual(x, 128)
+    x = residual(x, 128)
+    x = residual(x, 128)
+
+    # 64x64x16
+    x = tf.layers.conv2d(inputs=x, filters=16, kernel_size=(3, 3), strides=(1, 1), padding='same')
+    x = tf.nn.relu(x)
+    x = tf.layers.batch_normalization(x)
+
+    # 64x64x3
+    decoded = tf.layers.conv2d(inputs=x, filters=channels_num, kernel_size=(5, 5), strides=(1, 1), padding='same')
+    decoded = tf.nn.sigmoid(decoded)
     return decoded
 
 def hard_round(x, quant_size):
