@@ -59,6 +59,27 @@ def baseline_model_ID_GRAD(x, target, hparams):
 
     return distortion_loss, encoded, decoded
 
+def baseline_model_JUST_ROUND(x, target, hparams):
+    with tf.variable_scope("ENCODER", reuse=False) as scope:
+        encoded = encode_8x8x16(x)
+
+    qparams = { 'override_func': 'just_round' }
+    _, dequantized = quant_dequant(
+        encoded, 
+        gradient_override_quant, 
+        hparams.quant_size, 
+        qparams)
+
+    with tf.variable_scope("DECODER", reuse=False) as scope:
+        decoded = decode_8x8x16(dequantized)
+
+    distortion_loss = tf.losses.mean_squared_error(target, decoded)
+
+    PSNR_train = tf.reduce_mean(tf.image.psnr(target, decoded, max_val=1.0))
+    tf.summary.scalar('PSNR_train', PSNR_train)
+
+    return distortion_loss, encoded, decoded
+
 def __compute_alpha(step_num, max_alpha, alpha_div):
         return 1 + tf.math.minimum(max_alpha, step_num / alpha_div)
 
@@ -127,7 +148,7 @@ def binary_16x16x4_continous(x, target, step_num, hparams):
     return total_loss, cont_encoded, decoded, quant_decoded
 
 def __compute_alpha_sinus(step_num, max_alpha, alpha_div):
-    return tf.math.maximum(max_alpha, step_num / alpha_div)
+    return tf.math.minimum(max_alpha, step_num / alpha_div)
 
 def cont_quant_sinus(x, target, step_num, hparams):
     with tf.variable_scope("ENCODER", reuse=False) as scope:

@@ -200,6 +200,9 @@ def __round_with_id_grad(x):
         return dy
     return tf.round(x), grad
 
+def __just_round(x):
+    return tf.round(x)
+
 def gradient_override_quant(x, quant_size, qparams):
     quant = x
     quant = tf.nn.sigmoid(quant)
@@ -209,6 +212,8 @@ def gradient_override_quant(x, quant_size, qparams):
         quant = __round_with_sin_grad(quant)
     elif qparams['override_func'] == 'id':
         quant = __round_with_id_grad(quant)
+    elif qparams['override_func'] == 'just_round':
+        quant = __just_round(quant)
     else:
         raise Exception("Unknown override func: " + qparams.override_func)
 

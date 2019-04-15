@@ -73,6 +73,9 @@ class HyperPictureFramework:
         elif self.hparams.model_type == 'id_grad':
             total_loss, encoded, decoded = baseline_model_ID_GRAD(self.X, self.Y, self.hparams)
             quant_decoded = decoded
+        elif self.hparams.model_type == 'just_round':
+            total_loss, encoded, decoded = baseline_model_JUST_ROUND(self.X, self.Y, self.hparams)
+            quant_decoded = decoded
         elif self.hparams.model_type == 'no_quant':
             total_loss, encoded, decoded = baseline_model_NO_QUANT(self.X, self.Y)
             quant_decoded = decoded
