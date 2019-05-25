@@ -27,7 +27,6 @@ def encode_8x8x16(x):
     # 64x64x64
     x = tf.layers.conv2d(inputs=x, filters=64, kernel_size=(5, 5), strides=(1, 1), padding='same')
     x = tf.nn.relu(x)
-    x = tf.layers.batch_normalization(x)
 
     # 64x64x64
     x = residual(x, 64)
@@ -64,7 +63,6 @@ def decode_8x8x16(encoded, channels_num=3):
     # 8x8x64
     x = tf.layers.conv2d(inputs=x, filters=64, kernel_size=(5, 5), strides=(1, 1), padding='same')
     x = tf.nn.relu(x)
-    x = tf.layers.batch_normalization(x)
 
     # 8x8x64
     x = residual(x, 64)
@@ -81,8 +79,6 @@ def decode_8x8x16(encoded, channels_num=3):
     x = upsample(x, 128)
 
     # 32x32x128
-    x = residual(x, 128)
-    x = residual(x, 128)
     x = residual(x, 128)
     x = residual(x, 128)
 
@@ -106,7 +102,6 @@ def encode_16x16x4(x):
     # 64x64x64
     x = tf.layers.conv2d(inputs=x, filters=64, kernel_size=(5, 5), strides=(1, 1), padding='same')
     x = tf.nn.relu(x)
-    x = tf.layers.batch_normalization(x)
 
     # 64x64x64
     x = residual(x, 64)
@@ -145,7 +140,6 @@ def decode_16x16x4(encoded, channels_num=3):
     # 16x16x32
     x = tf.layers.conv2d(inputs=x, filters=32, kernel_size=(5, 5), strides=(1, 1), padding='same')
     x = tf.nn.relu(x)
-    x = tf.layers.batch_normalization(x)
 
     # 16x16x32
     x = residual(x, 32)

@@ -3,7 +3,7 @@ import tensorflow as tf
 import datetime
 import pathlib
 
-from hyper_picture_framework import HyperPictureFramework
+from training_framework import TrainingFramework
 from tensorflow.contrib.training import HParams
 from datasets import *
 import test_utils
@@ -95,7 +95,7 @@ tensorboard_train_dir = args.train_dir + '/' + args.tensorboard + '/' + model_na
 tensorboard_test_dir = args.train_dir + '/' + args.tensorboard + '/' + model_name + '/test'
 
 # Build net
-network = HyperPictureFramework(hparams, data_generator, model_name, saved_models_dir, test_utils.test_single_image_celeb, True)
+network = TrainingFramework(hparams, data_generator, model_name, saved_models_dir, test_utils.test_single_image_celeb, True)
 if hparams.checkpoint != '': 
     print('To restore graph you need to put metagraph path and directorty that contains checkpoint')
     if hparams.metagraph == '':

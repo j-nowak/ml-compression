@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from networks.models import *
 
-class HyperPictureFramework:
+class TrainingFramework:
     
     def __init__(self, hparams, data_generator, model_name, saved_models_dir, image_test_func, power_factors=False):
         self.hparams = hparams
