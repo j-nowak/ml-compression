@@ -145,3 +145,6 @@ data
 
 # Models
 train/
+
+# Notebooks
+notebooks/
